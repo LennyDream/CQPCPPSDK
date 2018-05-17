@@ -17,15 +17,15 @@ wchar_t*TW(string file) {
 	return w;
 }
 
-ISpVoice *pISpVoice;//½²ÊöÈË½Ó¿Ú
+ISpVoice *pISpVoice;//è®²è¿°äººæ¥å£
 
 bool Speak_init() {
 	if (!pISpVoice)
 	{
-		// ÖØÒªCOM½Ó¿Ú
+		// é‡è¦COMæ¥å£
 		::CoInitialize(NULL);
 
-		// »ñÈ¡ISpVoice½Ó¿Ú
+		// è·å–ISpVoiceæ¥å£
 		CoCreateInstance(CLSID_SpVoice, NULL, CLSCTX_INPROC_SERVER, IID_ISpVoice, (void**)&pISpVoice);
 
 		return pISpVoice;
@@ -43,10 +43,10 @@ bool Speak_to_wav_file(string file, string wantSay) {
 		(file[m + 2] != 'a' && file[m + 2] != 'A') ||
 		(file[m + 3] != 'v' && file[m + 3] != 'V')
 		) {
-		log.Debug("ÎÄ¼şÃû±ØĞëÒÔ.wav½áÎ²");
+		log.Debug("æ–‡ä»¶åå¿…é¡»ä»¥.wavç»“å°¾");
 		return false;
 	}
-	if (!Speak_init()) { log.Debug("Speak³õÊ¼»¯Ê§°Ü"); return false; }
+	if (!Speak_init()) { log.Debug("Speakåˆå§‹åŒ–å¤±è´¥"); return false; }
 
 	char pBuf[MAX_PATH];
 	GetCurrentDirectoryA(MAX_PATH, pBuf);
@@ -54,17 +54,17 @@ bool Speak_to_wav_file(string file, string wantSay) {
 	string s(pBuf);
 	s += "\\data\\record\\";
 	s += file;
-	//log.Debug(string("¸ùÄ¿Â¼Îª:") + pBuf);
-	//log.Debug("Â·¾¶Îª:" + s);
+	//log.Debug(string("æ ¹ç›®å½•ä¸º:") + pBuf);
+	//log.Debug("è·¯å¾„ä¸º:" + s);
 
 	bool res = false;
 
 	auto _file = TW(s.c_str());
 	auto _wantSay = TW(wantSay);
 
-	CSpStreamFormat OriginalFmt;//´´½¨Ò»¸öÊä³öÁ÷£¬°ó¶¨µ½wavÎÄ¼ş
-	CComPtr<ISpStream> cpWavStream;//wavÒôÆµÁ÷
-	CComPtr<ISpStreamFormat> cpOldStream;//¾ÉµÄÁ÷
+	CSpStreamFormat OriginalFmt;//åˆ›å»ºä¸€ä¸ªè¾“å‡ºæµï¼Œç»‘å®šåˆ°wavæ–‡ä»¶
+	CComPtr<ISpStream> cpWavStream;//wavéŸ³é¢‘æµ
+	CComPtr<ISpStreamFormat> cpOldStream;//æ—§çš„æµ
 
 	HRESULT hr = pISpVoice->GetOutputStream(&cpOldStream);
 	if (hr == S_OK)
@@ -73,18 +73,20 @@ bool Speak_to_wav_file(string file, string wantSay) {
 
 		if (SUCCEEDED(hr))
 		{
-			// Ê¹ÓÃsphelper.hÖĞÌá¹©µÄº¯Êı´´½¨ wav ÎÄ¼ş
+			// ä½¿ç”¨sphelper.hä¸­æä¾›çš„å‡½æ•°åˆ›å»º wav æ–‡ä»¶
 			hr = SPBindToFile(_file, SPFM_CREATE_ALWAYS, &cpWavStream, &OriginalFmt.FormatId(), OriginalFmt.WaveFormatExPtr());
 
 			if (SUCCEEDED(hr))
 			{
-				//ÉèÖÃÉùÒôµÄÊä³öµ½ wav ÎÄ¼ş£¬¶ø²»ÊÇ speakers
+				//è®¾ç½®å£°éŸ³çš„è¾“å‡ºåˆ° wav æ–‡ä»¶ï¼Œè€Œä¸æ˜¯ speakers
 				pISpVoice->SetOutput(cpWavStream, TRUE);
 
-				//¿ªÊ¼ÀÊ¶Á
+				//å¼€å§‹æœ—è¯»
 				pISpVoice->Speak(_wantSay, SPF_IS_NOT_XML, 0);
+				//æ¢å¤æœ—è¯»
+				pISpVoice->Resume();
 
-				//°ÑÁ÷ÉèÖÃ»ØÈ¥
+				//æŠŠæµè®¾ç½®å›å»
 				pISpVoice->SetOutput(cpOldStream, FALSE);
 
 				cpWavStream.Release();
@@ -92,15 +94,15 @@ bool Speak_to_wav_file(string file, string wantSay) {
 				res = true;
 			}
 			else {
-				log.Debug("SPBindToFile(...)º¯ÊıÖ´ĞĞÊ§°Ü,¿ÉÄÜµÄÔ­ÒòÊÇÎÄ¼şÃû²»ÕıÈ·:" + s);
+				log.Debug("SPBindToFile(...)å‡½æ•°æ‰§è¡Œå¤±è´¥,å¯èƒ½çš„åŸå› æ˜¯æ–‡ä»¶åä¸æ­£ç¡®:" + s);
 			}
 		}
 		else {
-			log.Debug("OriginalFmt.AssignFormat(cpOldStream)º¯ÊıÖ´ĞĞÊ§°Ü,ÄúµÄµçÄÔ¿ÉÄÜ²»Ö§³Ö´Ë¹¦ÄÜ.");
+			log.Debug("OriginalFmt.AssignFormat(cpOldStream)å‡½æ•°æ‰§è¡Œå¤±è´¥,æ‚¨çš„ç”µè„‘å¯èƒ½ä¸æ”¯æŒæ­¤åŠŸèƒ½.");
 		}
 	}
 	else {
-		log.Debug("ISpVoice->GetOutputStreamº¯ÊıÖ´ĞĞÊ§°Ü,ÄúµÄµçÄÔ¿ÉÄÜ²»Ö§³Ö´Ë¹¦ÄÜ.");
+		log.Debug("ISpVoice->GetOutputStreamå‡½æ•°æ‰§è¡Œå¤±è´¥,æ‚¨çš„ç”µè„‘å¯èƒ½ä¸æ”¯æŒæ­¤åŠŸèƒ½.");
 	}
 
 	return res;
